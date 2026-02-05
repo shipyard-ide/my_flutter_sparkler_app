@@ -27,20 +27,55 @@ class SparklerScreen extends StatefulWidget {
   State<SparklerScreen> createState() => _SparklerScreenState();
 }
 
+enum SparklerTheme {
+  gold('Gold'),
+  patriotic('Patriotic'),
+  rainbow('Rainbow');
+
+  final String displayName;
+  const SparklerTheme(this.displayName);
+
+  List<Color> get colors {
+    switch (this) {
+      case SparklerTheme.gold:
+        return const [
+          Color(0xFFFFD700), // Gold
+          Color(0xFFFFFFFF), // White
+          Color(0xFFFFA500), // Orange
+          Color(0xFFFFE4B5), // Light gold
+          Color(0xFFFFCC00), // Bright gold
+          Color(0xFFFFF8DC), // Cornsilk
+        ];
+      case SparklerTheme.patriotic:
+        return const [
+          Color(0xFFFF0000), // Red
+          Color(0xFFFFFFFF), // White
+          Color(0xFF0000FF), // Blue
+          Color(0xFFCC0000), // Dark red
+          Color(0xFF0000CC), // Dark blue
+          Color(0xFFFFCCCC), // Light red
+        ];
+      case SparklerTheme.rainbow:
+        return const [
+          Color(0xFFFF0000), // Red
+          Color(0xFFFF7F00), // Orange
+          Color(0xFFFFFF00), // Yellow
+          Color(0xFF00FF00), // Green
+          Color(0xFF0000FF), // Blue
+          Color(0xFF8B00FF), // Violet
+        ];
+    }
+  }
+}
+
 class _SparklerScreenState extends State<SparklerScreen>
     with TickerProviderStateMixin {
   late AnimationController _controller;
   final List<Spark> _sparks = [];
   final Random _random = Random();
+  SparklerTheme _currentTheme = SparklerTheme.gold;
 
-  static const List<Color> sparkColors = [
-    Color(0xFFFFD700), // Gold
-    Color(0xFFFFFFFF), // White
-    Color(0xFFFF4444), // Red
-    Color(0xFF4488FF), // Blue
-    Color(0xFFFFA500), // Orange
-    Color(0xFFFFE4B5), // Light gold
-  ];
+  List<Color> get sparkColors => _currentTheme.colors;
 
   @override
   void initState() {
@@ -107,17 +142,75 @@ class _SparklerScreenState extends State<SparklerScreen>
     super.dispose();
   }
 
+  void _cycleTheme() {
+    setState(() {
+      switch (_currentTheme) {
+        case SparklerTheme.gold:
+          _currentTheme = SparklerTheme.patriotic;
+          break;
+        case SparklerTheme.patriotic:
+          _currentTheme = SparklerTheme.rainbow;
+          break;
+        case SparklerTheme.rainbow:
+          _currentTheme = SparklerTheme.gold;
+          break;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0A0A14),
-      body: CustomPaint(
-        painter: SparklerPainter(
-          sparks: _sparks,
-          centerX: MediaQuery.of(context).size.width / 2,
-          centerY: MediaQuery.of(context).size.height / 2 - 60,
+      body: GestureDetector(
+        onTap: _cycleTheme,
+        child: Stack(
+          children: [
+            CustomPaint(
+              painter: SparklerPainter(
+                sparks: _sparks,
+                centerX: MediaQuery.of(context).size.width / 2,
+                centerY: MediaQuery.of(context).size.height / 2 - 60,
+              ),
+              size: Size.infinite,
+            ),
+            Positioned(
+              bottom: 80,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Theme: ${_currentTheme.displayName}',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Text(
+                  'Tap anywhere to change theme',
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-        size: Size.infinite,
       ),
     );
   }
